@@ -14,9 +14,13 @@
 (function () {
     "use strict";
 
-    function AlanBradley(selector, options) {
-        this.el = typeof selector === "string" ? document.querySelector(selector) : selector;
-        if (!this.el) throw new Error("AlanBradley: element not found: " + selector);
+    function AlanBradley (selector, options) {
+        this.el =
+      typeof selector === "string"
+          ? document.querySelector(selector)
+          : selector;
+        if (!this.el)
+            throw new Error("AlanBradley: element not found: " + selector);
 
         this.api = options.api;
         this.columns = options.columns || [];
@@ -50,6 +54,7 @@
         this.build_controls();
         this.build_table();
         this.build_status();
+        this.el.querySelector("tbody").classList.add("alanbradley-loading");
         this.fetch_chunk(1);
     };
 
@@ -107,7 +112,8 @@
             data = data.filter(function (row) {
                 for (let i = 0; i < filter_keys.length; i++) {
                     let key = filter_keys[i];
-                    let val = String(row[key] || "").toLowerCase();
+                    let val = String(row[key] || "")
+                        .toLowerCase();
                     if (val !== self.filter_values[key].toLowerCase()) return false;
                 }
                 return true;
@@ -120,7 +126,8 @@
             data = data.filter(function (row) {
                 for (let i = 0; i < self.search_fields.length; i++) {
                     let field = self.search_fields[i];
-                    let val = String(row[field] || "").toLowerCase();
+                    let val = String(row[field] || "")
+                        .toLowerCase();
                     if (val.indexOf(term) !== -1) return true;
                 }
                 return false;
@@ -136,38 +143,49 @@
         if (this.sort_column) {
             let col = this.sort_column;
             let dir = this.sort_dir === "desc" ? -1 : 1;
-            data = data.slice().sort(function (a, b) {
-                let va = a[col];
-                let vb = b[col];
+            data = data.slice()
+                .sort(function (a, b) {
+                    let va = a[col];
+                    let vb = b[col];
 
-                // Handle nulls
-                if (va == null && vb == null) return 0;
-                if (va == null) return dir;
-                if (vb == null) return -dir;
+                    // Handle nulls
+                    if (va == null && vb == null) return 0;
+                    if (va == null) return dir;
+                    if (vb == null) return -dir;
 
-                // Date sort (ISO date strings)
-                if (typeof va === "string" && /^\d{4}-\d{2}-\d{2}/.test(va) && typeof vb === "string" && /^\d{4}-\d{2}-\d{2}/.test(vb)) {
-                    let da = new Date(va).getTime();
-                    let db = new Date(vb).getTime();
-                    if (!isNaN(da) && !isNaN(db)) {
-                        return (da - db) * dir;
+                    // Date sort (ISO date strings)
+                    if (
+                        typeof va === "string" &&
+          /^\d{4}-\d{2}-\d{2}/.test(va) &&
+          typeof vb === "string" &&
+          /^\d{4}-\d{2}-\d{2}/.test(vb)
+                    ) {
+                        let da = new Date(va)
+                            .getTime();
+                        let db = new Date(vb)
+                            .getTime();
+                        if (!isNaN(da) && !isNaN(db)) {
+                            return (da - db) * dir;
+                        }
                     }
-                }
 
-                // Numeric sort (handles string-encoded numbers)
-                let na = parseFloat(va);
-                let nb = parseFloat(vb);
-                if (!isNaN(na) && !isNaN(nb) && String(va).indexOf("-") !== 0) {
-                    return (na - nb) * dir;
-                }
+                    // Numeric sort (handles string-encoded numbers)
+                    let na = parseFloat(va);
+                    let nb = parseFloat(vb);
+                    if (!isNaN(na) && !isNaN(nb) && String(va)
+                        .indexOf("-") !== 0) {
+                        return (na - nb) * dir;
+                    }
 
-                // String sort
-                va = String(va).toLowerCase();
-                vb = String(vb).toLowerCase();
-                if (va < vb) return -1 * dir;
-                if (va > vb) return 1 * dir;
-                return 0;
-            });
+                    // String sort
+                    va = String(va)
+                        .toLowerCase();
+                    vb = String(vb)
+                        .toLowerCase();
+                    if (va < vb) return -1 * dir;
+                    if (va > vb) return 1 * dir;
+                    return 0;
+                });
         }
 
         return data;
@@ -204,11 +222,11 @@
         if (page_data.length === 0 && this.all_data.length > 0) {
             // Filtered to nothing
             tbody.innerHTML =
-                '<tr class="alanbradley-empty"><td colspan="' +
-                this.columns.length +
-                '">' +
-                this.escape_html(this.empty_message) +
-                "</td></tr>";
+        "<tr class=\"alanbradley-empty\"><td colspan=\"" +
+        this.columns.length +
+        "\">" +
+        this.escape_html(this.empty_message) +
+        "</td></tr>";
             return;
         }
 
@@ -238,9 +256,13 @@
 
         // Previous
         if (this.current_page > 1) {
-            html += '<button class="alanbradley-pagination-item" data-alanbradley-page="' + (this.current_page - 1) + '">&laquo;</button>';
+            html +=
+        "<button class=\"alanbradley-pagination-item\" data-alanbradley-page=\"" +
+        (this.current_page - 1) +
+        "\">&laquo;</button>";
         } else {
-            html += '<button class="alanbradley-pagination-item alanbradley-pagination-disabled">&laquo;</button>';
+            html +=
+        "<button class=\"alanbradley-pagination-item alanbradley-pagination-disabled\">&laquo;</button>";
         }
 
         // Page numbers (sliding window of 5)
@@ -248,28 +270,50 @@
         let end = Math.min(total_pages, this.current_page + 2);
 
         if (start > 1) {
-            html += '<button class="alanbradley-pagination-item" data-alanbradley-page="1">1</button>';
-            if (start > 2) html += '<span class="alanbradley-pagination-item alanbradley-pagination-disabled">&hellip;</span>';
+            html +=
+        "<button class=\"alanbradley-pagination-item\" data-alanbradley-page=\"1\">1</button>";
+            if (start > 2)
+                html +=
+          "<span class=\"alanbradley-pagination-item alanbradley-pagination-disabled\">&hellip;</span>";
         }
 
         for (let p = start; p <= end; p++) {
             if (p === this.current_page) {
-                html += '<button class="alanbradley-pagination-item alanbradley-pagination-active">' + p + "</button>";
+                html +=
+          "<button class=\"alanbradley-pagination-item alanbradley-pagination-active\">" +
+          p +
+          "</button>";
             } else {
-                html += '<button class="alanbradley-pagination-item" data-alanbradley-page="' + p + '">' + p + "</button>";
+                html +=
+          "<button class=\"alanbradley-pagination-item\" data-alanbradley-page=\"" +
+          p +
+          "\">" +
+          p +
+          "</button>";
             }
         }
 
         if (end < total_pages) {
-            if (end < total_pages - 1) html += '<span class="alanbradley-pagination-item alanbradley-pagination-disabled">&hellip;</span>';
-            html += '<button class="alanbradley-pagination-item" data-alanbradley-page="' + total_pages + '">' + total_pages + "</button>";
+            if (end < total_pages - 1)
+                html +=
+          "<span class=\"alanbradley-pagination-item alanbradley-pagination-disabled\">&hellip;</span>";
+            html +=
+        "<button class=\"alanbradley-pagination-item\" data-alanbradley-page=\"" +
+        total_pages +
+        "\">" +
+        total_pages +
+        "</button>";
         }
 
         // Next
         if (this.current_page < total_pages) {
-            html += '<button class="alanbradley-pagination-item" data-alanbradley-page="' + (this.current_page + 1) + '">&raquo;</button>';
+            html +=
+        "<button class=\"alanbradley-pagination-item\" data-alanbradley-page=\"" +
+        (this.current_page + 1) +
+        "\">&raquo;</button>";
         } else {
-            html += '<button class="alanbradley-pagination-item alanbradley-pagination-disabled">&raquo;</button>';
+            html +=
+        "<button class=\"alanbradley-pagination-item alanbradley-pagination-disabled\">&raquo;</button>";
         }
 
         el.innerHTML = html;
@@ -279,7 +323,9 @@
         let buttons = el.querySelectorAll("[data-alanbradley-page]");
         for (let i = 0; i < buttons.length; i++) {
             buttons[i].addEventListener("click", function () {
-                self.go_to_page(parseInt(this.getAttribute("data-alanbradley-page"), 10));
+                self.go_to_page(
+                    parseInt(this.getAttribute("data-alanbradley-page"), 10),
+                );
             });
         }
     };
@@ -479,8 +525,15 @@
         let ths = this.el.querySelectorAll(".alanbradley-sortable");
         for (let i = 0; i < ths.length; i++) {
             ths[i].classList.remove("alanbradley-sort-asc", "alanbradley-sort-desc");
-            if (this.sort_column && ths[i].getAttribute("data-alanbradley-sort") === this.sort_column) {
-                ths[i].classList.add(this.sort_dir === "asc" ? "alanbradley-sort-asc" : "alanbradley-sort-desc");
+            if (
+                this.sort_column &&
+        ths[i].getAttribute("data-alanbradley-sort") === this.sort_column
+            ) {
+                ths[i].classList.add(
+                    this.sort_dir === "asc"
+                        ? "alanbradley-sort-asc"
+                        : "alanbradley-sort-desc",
+                );
             }
         }
     };
@@ -508,7 +561,9 @@
         } else {
             delete this.filter_values[key];
         }
-        let select = this.el.parentElement.querySelector('[data-alanbradley-filter="' + key + '"]');
+        let select = this.el.parentElement.querySelector(
+            "[data-alanbradley-filter=\"" + key + "\"]",
+        );
         if (select) select.value = value || "";
         this.current_page = 1;
         this.render();
@@ -518,7 +573,9 @@
         this.filter_values = {};
         this.search_term = "";
         if (this.search_input) this.search_input.value = "";
-        let selects = this.el.parentElement.querySelectorAll("[data-alanbradley-filter]");
+        let selects = this.el.parentElement.querySelectorAll(
+            "[data-alanbradley-filter]",
+        );
         for (let i = 0; i < selects.length; i++) {
             selects[i].value = "";
         }
@@ -557,5 +614,9 @@
     };
 
     // Export
-    window.AlanBradley = AlanBradley;
+    if (typeof module !== "undefined" && module.exports) {
+        module.exports = AlanBradley;
+    } else {
+        window.AlanBradley = AlanBradley;
+    }
 })();
