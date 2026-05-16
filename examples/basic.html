@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AlanBradley Demo</title>
+    <style>
+      body {
+        font-family: system-ui, sans-serif;
+        margin: 2rem;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+      }
+      th,
+      td {
+        padding: 0.5rem 0.75rem;
+        text-align: left;
+        border-bottom: 1px solid #dee2e6;
+      }
+      th {
+        font-weight: 600;
+        color: #6c757d;
+        font-size: 0.75rem;
+        text-transform: uppercase;
+      }
+      tbody tr:hover {
+        background: #f1f3f5;
+      }
+    </style>
+    <link rel="stylesheet" href="../src/alanbradley.css" />
+  </head>
+  <body>
+    <h1>AlanBradley Demo</h1>
+
+    <table id="demo-table">
+      <tbody></tbody>
+    </table>
+    <div class="alanbradley-status"></div>
+
+    <script src="../src/alanbradley.js"></script>
+    <script>
+      const data = [];
+      for (let i = 1; i <= 100; i++) {
+        data.push({
+          id: i,
+          name: "Item " + i,
+          status: i % 3 === 0 ? "active" : i % 3 === 1 ? "pending" : "closed",
+          amount: (Math.random() * 1000).toFixed(2),
+        });
+      }
+
+      new AlanBradley("#demo-table", {
+        api: null,
+        columns: [
+          { key: "id", label: "ID", sortable: true },
+          { key: "name", label: "Name", sortable: true },
+          { key: "status", label: "Status", sortable: true },
+          { key: "amount", label: "Amount", sortable: true },
+        ],
+        filters: [
+          {
+            key: "status",
+            label: "Status",
+            options: ["active", "pending", "closed"],
+          },
+        ],
+        search_fields: ["name", "status"],
+        render_row: function (item) {
+          return (
+            "<tr>" +
+            '<td data-label="ID">' +
+            item.id +
+            "</td>" +
+            '<td data-label="Name">' +
+            item.name +
+            "</td>" +
+            '<td data-label="Status">' +
+            item.status +
+            "</td>" +
+            '<td data-label="Amount">$' +
+            item.amount +
+            "</td>" +
+            "</tr>"
+          );
+        },
+      });
+    </script>
+  </body>
+</html>

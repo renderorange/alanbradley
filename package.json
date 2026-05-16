@@ -1,0 +1,30 @@
+{
+    "name": "@renderorange/alanbradley",
+    "version": "0.1.0",
+    "description": "lightweight table filter, sorting, and pagination library, with optional background chunking",
+    "license": "MIT",
+    "author": "Blaine Motsinger <blaine@renderorange.com>",
+    "main": "src/alanbradley.js",
+    "style": "src/alanbradley.css",
+    "files": [
+        "src/",
+        "LICENSE",
+        "README.md"
+    ],
+    "keywords": [
+        "table",
+        "sort",
+        "filter",
+        "pagination",
+        "grid",
+        "vanilla-js"
+    ],
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/renderorange/alanbradley.git"
+    },
+    "bugs": {
+        "url": "https://github.com/renderorange/alanbradley/issues"
+    },
+    "homepage": "https://github.com/renderorange/alanbradley#readme"
+}
