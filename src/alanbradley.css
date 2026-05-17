@@ -3,233 +3,233 @@
 /* Namespace: alanbradley-* */
 
 :root {
-  --alanbradley-sort-arrow-color: #6c757d;
-  --alanbradley-active-sort-color: #0d6efd;
-  --alanbradley-row-hover-bg: #f1f3f5;
-  --alanbradley-pagination-active-bg: #0d6efd;
-  --alanbradley-pagination-active-color: #fff;
-  --alanbradley-pagination-hover-bg: #e9ecef;
-  --alanbradley-loading-opacity: 0.5;
-  --alanbradley-filter-bg: #fff;
-  --alanbradley-filter-border: #ced4da;
-  --alanbradley-filter-border-radius: 0.375rem;
-  --alanbradley-search-bg: #fff;
-  --alanbradley-search-border: #ced4da;
-  --alanbradley-search-border-radius: 0.375rem;
-  --alanbradley-status-color: #6c757d;
-  --alanbradley-empty-color: #6c757d;
-  --alanbradley-toggle-color: #6c757d;
-  --alanbradley-toggle-hover-color: #0d6efd;
-  --alanbradley-expanded-bg: #f8f9fa;
-  --alanbradley-expanded-border: #dee2e6;
+    --alanbradley-sort-arrow-color: #6c757d;
+    --alanbradley-active-sort-color: #0d6efd;
+    --alanbradley-row-hover-bg: #f1f3f5;
+    --alanbradley-pagination-active-bg: #0d6efd;
+    --alanbradley-pagination-active-color: #fff;
+    --alanbradley-pagination-hover-bg: #e9ecef;
+    --alanbradley-loading-opacity: 0.5;
+    --alanbradley-filter-bg: #fff;
+    --alanbradley-filter-border: #ced4da;
+    --alanbradley-filter-border-radius: 0.375rem;
+    --alanbradley-search-bg: #fff;
+    --alanbradley-search-border: #ced4da;
+    --alanbradley-search-border-radius: 0.375rem;
+    --alanbradley-status-color: #6c757d;
+    --alanbradley-empty-color: #6c757d;
+    --alanbradley-toggle-color: #6c757d;
+    --alanbradley-toggle-hover-color: #0d6efd;
+    --alanbradley-expanded-bg: #f8f9fa;
+    --alanbradley-expanded-border: #dee2e6;
 }
 
 /* Controls bar: search + filters */
 .alanbradley-controls {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  margin-bottom: 0.75rem;
-  flex-wrap: wrap;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 0.75rem;
+    flex-wrap: wrap;
 }
 
 .alanbradley-search {
-  width: 200px;
-  padding: 0.375rem 0.75rem;
-  font-size: 0.875rem;
-  background: var(--alanbradley-search-bg);
-  border: 1px solid var(--alanbradley-search-border);
-  border-radius: var(--alanbradley-search-border-radius);
-  outline: none;
-  transition: border-color 0.15s ease;
+    width: 200px;
+    padding: 0.375rem 0.75rem;
+    font-size: 0.875rem;
+    background: var(--alanbradley-search-bg);
+    border: 1px solid var(--alanbradley-search-border);
+    border-radius: var(--alanbradley-search-border-radius);
+    outline: none;
+    transition: border-color 0.15s ease;
 }
 
 .alanbradley-search:focus {
-  border-color: var(--alanbradley-active-sort-color);
-  box-shadow: 0 0 0 2px rgba(13, 110, 253, 0.15);
+    border-color: var(--alanbradley-active-sort-color);
+    box-shadow: 0 0 0 2px rgba(13, 110, 253, 0.15);
 }
 
 .alanbradley-page-size {
-  padding: 0.25rem 0.5rem;
-  font-size: 0.8125rem;
-  background: var(--alanbradley-filter-bg);
-  border: 1px solid var(--alanbradley-filter-border);
-  border-radius: var(--alanbradley-filter-border-radius);
+    padding: 0.25rem 0.5rem;
+    font-size: 0.8125rem;
+    background: var(--alanbradley-filter-bg);
+    border: 1px solid var(--alanbradley-filter-border);
+    border-radius: var(--alanbradley-filter-border-radius);
 }
 
 .alanbradley-filter {
-  padding: 0.375rem 0.75rem;
-  font-size: 0.875rem;
-  background: var(--alanbradley-filter-bg);
-  border: 1px solid var(--alanbradley-filter-border);
-  border-radius: var(--alanbradley-filter-border-radius);
+    padding: 0.375rem 0.75rem;
+    font-size: 0.875rem;
+    background: var(--alanbradley-filter-bg);
+    border: 1px solid var(--alanbradley-filter-border);
+    border-radius: var(--alanbradley-filter-border-radius);
 }
 
 .alanbradley-filter-label {
-  font-size: 0.75rem;
-  font-weight: 600;
-  color: var(--alanbradley-status-color);
-  text-transform: uppercase;
-  letter-spacing: 0.3px;
-  margin-right: 0.25rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--alanbradley-status-color);
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    margin-right: 0.25rem;
 }
 
 /* Sortable headers */
 .alanbradley-sortable {
-  cursor: pointer;
-  user-select: none;
-  position: relative;
-  padding-right: 1.5rem;
+    cursor: pointer;
+    user-select: none;
+    position: relative;
+    padding-right: 1.5rem;
 }
 
 .alanbradley-sortable:hover {
-  background: var(--alanbradley-row-hover-bg);
+    background: var(--alanbradley-row-hover-bg);
 }
 
 .alanbradley-sortable::after {
-  content: "\2195";
-  position: absolute;
-  right: 0.5rem;
-  top: 50%;
-  transform: translateY(-50%);
-  color: var(--alanbradley-sort-arrow-color);
-  opacity: 0.4;
-  font-size: 0.6rem;
+    content: "\2195";
+    position: absolute;
+    right: 0.5rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--alanbradley-sort-arrow-color);
+    opacity: 0.4;
+    font-size: 0.6rem;
 }
 
 .alanbradley-sort-asc::after {
-  content: "\2191";
-  opacity: 1;
-  font-size: 0.6rem;
+    content: "\2191";
+    opacity: 1;
+    font-size: 0.6rem;
 }
 
 .alanbradley-sort-desc::after {
-  content: "\2193";
-  opacity: 1;
-  font-size: 0.6rem;
+    content: "\2193";
+    opacity: 1;
+    font-size: 0.6rem;
 }
 
 /* Row hover */
 .alanbradley tbody tr:hover {
-  background: var(--alanbradley-row-hover-bg);
+    background: var(--alanbradley-row-hover-bg);
 }
 
 /* Loading state */
 .alanbradley-loading {
-  opacity: var(--alanbradley-loading-opacity);
-  pointer-events: none;
-  transition: opacity 0.15s ease;
+    opacity: var(--alanbradley-loading-opacity);
+    pointer-events: none;
+    transition: opacity 0.15s ease;
 }
 
 /* Empty state */
 .alanbradley-empty td {
-  text-align: center;
-  padding: 2rem;
-  color: var(--alanbradley-empty-color);
-  font-style: italic;
+    text-align: center;
+    padding: 2rem;
+    color: var(--alanbradley-empty-color);
+    font-style: italic;
 }
 
 /* Expandable rows */
 .alanbradley-toggle {
-  cursor: pointer;
-  width: 2rem;
-  text-align: center;
-  color: var(--alanbradley-toggle-color);
-  user-select: none;
+    cursor: pointer;
+    width: 2rem;
+    text-align: center;
+    color: var(--alanbradley-toggle-color);
+    user-select: none;
 }
 
 .alanbradley-toggle:hover {
-  color: var(--alanbradley-toggle-hover-color);
+    color: var(--alanbradley-toggle-hover-color);
 }
 
 .alanbradley-expanded td {
-  background: var(--alanbradley-expanded-bg);
-  border-bottom: 1px solid var(--alanbradley-expanded-border);
-  padding: 0.75rem 1rem;
+    background: var(--alanbradley-expanded-bg);
+    border-bottom: 1px solid var(--alanbradley-expanded-border);
+    padding: 0.75rem 1rem;
 }
 
 /* Status bar: [page size] per page [pagination] [showing X-Y of Z] */
 .alanbradley-status {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  margin-top: 0.5rem;
-  font-size: 0.8125rem;
-  color: var(--alanbradley-status-color);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+    font-size: 0.8125rem;
+    color: var(--alanbradley-status-color);
 }
 
 .alanbradley-page-size-label {
-  margin-right: auto;
+    margin-right: auto;
 }
 
 .alanbradley-pagination {
-  display: flex;
-  align-items: center;
-  gap: 0.25rem;
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
 }
 
 .alanbradley-pagination-item {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 2rem;
-  height: 2rem;
-  padding: 0 0.5rem;
-  font-size: 0.875rem;
-  border: 1px solid #dee2e6;
-  border-radius: 0.25rem;
-  background: transparent;
-  cursor: pointer;
-  transition: background 0.15s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 2rem;
+    height: 2rem;
+    padding: 0 0.5rem;
+    font-size: 0.875rem;
+    border: 1px solid #dee2e6;
+    border-radius: 0.25rem;
+    background: transparent;
+    cursor: pointer;
+    transition: background 0.15s ease;
 }
 
 .alanbradley-pagination-item:hover:not(.alanbradley-pagination-active):not(
     .alanbradley-pagination-disabled
-  ) {
-  background: var(--alanbradley-pagination-hover-bg);
+) {
+    background: var(--alanbradley-pagination-hover-bg);
 }
 
 .alanbradley-pagination-active {
-  background: var(--alanbradley-pagination-active-bg);
-  color: var(--alanbradley-pagination-active-color);
-  border-color: var(--alanbradley-pagination-active-bg);
+    background: var(--alanbradley-pagination-active-bg);
+    color: var(--alanbradley-pagination-active-color);
+    border-color: var(--alanbradley-pagination-active-bg);
 }
 
 .alanbradley-pagination-disabled {
-  opacity: 0.4;
-  cursor: not-allowed;
+    opacity: 0.4;
+    cursor: not-allowed;
 }
 
 .alanbradley-status-text {
-  margin-left: auto;
+    margin-left: auto;
 }
 
 /* Mobile responsive */
 @media (max-width: 767.98px) {
-  .alanbradley-controls {
-    flex-direction: column;
-    align-items: stretch;
-  }
+    .alanbradley-controls {
+        flex-direction: column;
+        align-items: stretch;
+    }
 
-  .alanbradley-search {
-    width: 100%;
-  }
+    .alanbradley-search {
+        width: 100%;
+    }
 
-  .alanbradley-filter {
-    width: 100%;
-  }
+    .alanbradley-filter {
+        width: 100%;
+    }
 }
 
 [data-theme="dark"] {
-  --alanbradley-row-hover-bg: #363636;
-  --alanbradley-filter-bg: #333;
-  --alanbradley-filter-border: #555;
-  --alanbradley-search-bg: #333;
-  --alanbradley-search-border: #555;
-  --alanbradley-status-color: #999;
-  --alanbradley-empty-color: #999;
-  --alanbradley-toggle-color: #999;
-  --alanbradley-toggle-hover-color: #6c9eff;
-  --alanbradley-expanded-bg: #2b2b2b;
-  --alanbradley-expanded-border: #444;
+    --alanbradley-row-hover-bg: #363636;
+    --alanbradley-filter-bg: #333;
+    --alanbradley-filter-border: #555;
+    --alanbradley-search-bg: #333;
+    --alanbradley-search-border: #555;
+    --alanbradley-status-color: #999;
+    --alanbradley-empty-color: #999;
+    --alanbradley-toggle-color: #999;
+    --alanbradley-toggle-hover-color: #6c9eff;
+    --alanbradley-expanded-bg: #2b2b2b;
+    --alanbradley-expanded-border: #444;
 }
