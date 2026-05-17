@@ -35,6 +35,9 @@
         this.empty_message = options.empty_message || "No records found.";
         this.on_sort = options.on_sort || null;
         this.on_filter = options.on_filter || null;
+        this.render_expanded = options.render_expanded || null;
+        this.on_expand = options.on_expand || null;
+        this.on_collapse = options.on_collapse || null;
 
         this.all_data = [];
         this.loaded_chunks = {};
@@ -45,6 +48,7 @@
         this.sort_dir = "asc";
         this.search_term = "";
         this.filter_values = {};
+        this.expanded_rows = new Set();
         this.search_timeout = null;
 
         this.init();
@@ -55,6 +59,20 @@
         this.build_table();
         this.build_status();
         this.el.querySelector("tbody").classList.add("alanbradley-loading");
+
+        if (this.render_expanded) {
+            let self = this;
+            this._onToggleClick = function (e) {
+                let td = e.target.closest(".alanbradley-toggle");
+                if (!td) return;
+                let index = parseInt(td.getAttribute("data-alanbradley-row"), 10);
+                if (isNaN(index)) return;
+                self.toggle_row(index);
+            };
+            this.el.querySelector("tbody")
+                .addEventListener("click", this._onToggleClick);
+        }
+
         this.fetch_chunk(1);
     };
 
@@ -126,9 +144,19 @@
             data = data.filter(function (row) {
                 for (let i = 0; i < self.search_fields.length; i++) {
                     let field = self.search_fields[i];
-                    let val = String(row[field] || "")
-                        .toLowerCase();
-                    if (val.indexOf(term) !== -1) return true;
+                    let val = self._resolve_field(row, field);
+                    if (val === null || val === undefined) continue;
+                    if (Array.isArray(val)) {
+                        for (let j = 0; j < val.length; j++) {
+                            if (val[j] && String(val[j])
+                                .toLowerCase()
+                                .indexOf(term) !== -1) return true;
+                        }
+                    } else {
+                        if (String(val)
+                            .toLowerCase()
+                            .indexOf(term) !== -1) return true;
+                    }
                 }
                 return false;
             });
@@ -218,12 +246,12 @@
     AlanBradley.prototype.render_rows = function () {
         let tbody = this.el.querySelector("tbody");
         let page_data = this.get_page_data();
+        let colspan = this.columns.length + (this.render_expanded ? 1 : 0);
 
         if (page_data.length === 0 && this.all_data.length > 0) {
-            // Filtered to nothing
             tbody.innerHTML =
         "<tr class=\"alanbradley-empty\"><td colspan=\"" +
-        this.columns.length +
+        colspan +
         "\">" +
         this.escape_html(this.empty_message) +
         "</td></tr>";
@@ -238,7 +266,22 @@
         tbody.classList.remove("alanbradley-loading");
         let html = "";
         for (let i = 0; i < page_data.length; i++) {
-            html += this.render_row(page_data[i]);
+            let row_html = this.render_row(page_data[i]);
+
+            if (this.render_expanded) {
+                let toggle_icon = this.expanded_rows.has(i) ? "\u2212" : "+";
+                let toggle_td = "<td class=\"alanbradley-toggle\" data-alanbradley-row=\"" + i + "\">" + toggle_icon + "</td>";
+                row_html = row_html.replace("<tr>", "<tr>" + toggle_td);
+
+                if (this.expanded_rows.has(i)) {
+                    let expanded_content = this.render_expanded(page_data[i]);
+                    html += row_html;
+                    html += "<tr class=\"alanbradley-expanded\"><td colspan=\"" + colspan + "\">" + expanded_content + "</td></tr>";
+                    continue;
+                }
+            }
+
+            html += row_html;
         }
         tbody.innerHTML = html;
     };
@@ -368,6 +411,7 @@
             clearTimeout(self.search_timeout);
             self.search_timeout = setTimeout(function () {
                 self.search_term = search.value.trim();
+                self.expanded_rows.clear();
                 self.current_page = 1;
                 self.render();
             }, 300);
@@ -414,6 +458,7 @@
                     } else {
                         delete self.filter_values[key];
                     }
+                    self.expanded_rows.clear();
                     self.current_page = 1;
                     self.render();
                     if (self.on_filter) self.on_filter(self.filter_values);
@@ -437,6 +482,13 @@
 
         let tr = document.createElement("tr");
         let self = this;
+
+        if (this.render_expanded) {
+            let toggle_th = document.createElement("th");
+            toggle_th.className = "alanbradley-th";
+            tr.appendChild(toggle_th);
+        }
+
         for (let i = 0; i < this.columns.length; i++) {
             let col = this.columns[i];
             let th = document.createElement("th");
@@ -454,6 +506,7 @@
                             self.sort_column = key;
                             self.sort_dir = "asc";
                         }
+                        self.expanded_rows.clear();
                         self.current_page = 1;
                         self.update_sort_indicators();
                         self.render();
@@ -538,6 +591,7 @@
     AlanBradley.prototype.go_to_page = function (page) {
         let total_pages = this.get_total_pages();
         if (page < 1 || page > total_pages) return;
+        this.expanded_rows.clear();
         this.current_page = page;
         this.render();
     };
@@ -545,6 +599,7 @@
     AlanBradley.prototype.set_sort = function (column, direction) {
         this.sort_column = column;
         this.sort_dir = direction;
+        this.expanded_rows.clear();
         this.current_page = 1;
         this.update_sort_indicators();
         this.render();
@@ -560,6 +615,7 @@
             "[data-alanbradley-filter=\"" + key + "\"]",
         );
         if (select) select.value = value || "";
+        this.expanded_rows.clear();
         this.current_page = 1;
         this.render();
     };
@@ -567,6 +623,7 @@
     AlanBradley.prototype.clear_filters = function () {
         this.filter_values = {};
         this.search_term = "";
+        this.expanded_rows.clear();
         if (this.search_input) this.search_input.value = "";
         let selects = this.el.parentElement.querySelectorAll(
             "[data-alanbradley-filter]",
@@ -580,6 +637,7 @@
 
     AlanBradley.prototype.search = function (term) {
         this.search_term = term;
+        this.expanded_rows.clear();
         if (this.search_input) this.search_input.value = term;
         this.current_page = 1;
         this.render();
@@ -600,6 +658,64 @@
         if (controls) controls.remove();
         this.pagination_el.innerHTML = "";
         this.status_el.innerHTML = "";
+        if (this._onToggleClick) {
+            this.el.querySelector("tbody")
+                .removeEventListener("click", this._onToggleClick);
+        }
+    };
+
+    AlanBradley.prototype.toggle_row = function (index) {
+        if (this.expanded_rows.has(index)) {
+            this.collapse_row(index);
+        } else {
+            this.expand_row(index);
+        }
+    };
+
+    AlanBradley.prototype.expand_row = function (index) {
+        if (this.expanded_rows.has(index)) return;
+        this.expanded_rows.add(index);
+        let page_data = this.get_page_data();
+        this.render_rows();
+        if (this.on_expand) this.on_expand(page_data[index], index);
+    };
+
+    AlanBradley.prototype.collapse_row = function (index) {
+        if (!this.expanded_rows.has(index)) return;
+        this.expanded_rows.delete(index);
+        let page_data = this.get_page_data();
+        this.render_rows();
+        if (this.on_collapse) this.on_collapse(page_data[index], index);
+    };
+
+    AlanBradley.prototype.collapse_all = function () {
+        this.expanded_rows.clear();
+        this.render_rows();
+    };
+
+    AlanBradley.prototype._resolve_field = function (obj, path) {
+        if (path.indexOf(".") === -1) {
+            return obj[path] != null ? obj[path] : null;
+        }
+        let parts = path.split(".");
+        let current = obj;
+        for (let i = 0; i < parts.length - 1; i++) {
+            if (current == null || typeof current !== "object") return null;
+            current = current[parts[i]];
+        }
+        if (current == null) return null;
+        let lastKey = parts[parts.length - 1];
+        if (Array.isArray(current)) {
+            let results = [];
+            for (let i = 0; i < current.length; i++) {
+                if (current[i] != null && current[i][lastKey] != null) {
+                    results.push(current[i][lastKey]);
+                }
+            }
+            return results.length > 0 ? results : null;
+        }
+        if (current[lastKey] != null) return current[lastKey];
+        return null;
     };
 
     AlanBradley.prototype.escape_html = function (str) {

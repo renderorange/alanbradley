@@ -190,6 +190,21 @@ describe("AlanBradley", () => {
             expect(ab.empty_message)
                 .toBe("Nothing here.");
         });
+
+        test("stores render_expanded option", () => {
+            global.fetch = mockFetch(sampleData, sampleData.length);
+            const fn = function (item) { return "<p>" + item.name + "</p>"; };
+            const ab = createInstance({ render_expanded: fn });
+            expect(ab.render_expanded)
+                .toBe(fn);
+        });
+
+        test("render_expanded defaults to null", () => {
+            global.fetch = mockFetch(sampleData, sampleData.length);
+            const ab = createInstance();
+            expect(ab.render_expanded)
+                .toBeNull();
+        });
     });
 
     describe("data loading", () => {
@@ -705,6 +720,107 @@ describe("AlanBradley", () => {
             expect(ab.get_total_filtered())
                 .toBe(2);
         });
+
+        test("searches nested data with dot-notation path", async () => {
+            const nestedData = [
+                {
+                    id: 1,
+                    name: "Alice",
+                    status: "active",
+                    items: [
+                        { label: "Widget", description: "A useful tool" },
+                        { label: "Gadget", description: "A fancy device" },
+                    ],
+                },
+                {
+                    id: 2,
+                    name: "Bob",
+                    status: "pending",
+                    items: [],
+                },
+            ];
+            global.fetch = mockFetch(nestedData, nestedData.length);
+            const ab = createInstance({
+                chunk: false,
+                page_size: 50,
+                search_fields: ["name", "items.description"],
+            });
+
+            await new Promise((resolve) => setTimeout(resolve, 10));
+
+            ab.search("fancy");
+
+            expect(ab.get_total_filtered())
+                .toBe(1);
+        });
+
+        test("dot-notation search matches parent row when nested array item matches", async () => {
+            const nestedData = [
+                {
+                    id: 1,
+                    name: "Alice",
+                    items: [{ name: "Widget" }, { name: "Gadget" }],
+                },
+                {
+                    id: 2,
+                    name: "Bob",
+                    items: [{ name: "Thing" }],
+                },
+            ];
+            global.fetch = mockFetch(nestedData, nestedData.length);
+            const ab = createInstance({
+                chunk: false,
+                page_size: 50,
+                search_fields: ["items.name"],
+            });
+
+            await new Promise((resolve) => setTimeout(resolve, 10));
+
+            ab.search("dget");
+
+            expect(ab.get_total_filtered())
+                .toBe(1);
+        });
+
+        test("dot-notation search with non-array nested value matches as scalar", async () => {
+            const nestedData = [
+                { id: 1, name: "Alice", details: { note: "important" } },
+                { id: 2, name: "Bob", details: { note: "trivial" } },
+            ];
+            global.fetch = mockFetch(nestedData, nestedData.length);
+            const ab = createInstance({
+                chunk: false,
+                page_size: 50,
+                search_fields: ["details.note"],
+            });
+
+            await new Promise((resolve) => setTimeout(resolve, 10));
+
+            ab.search("important");
+
+            expect(ab.get_total_filtered())
+                .toBe(1);
+        });
+
+        test("dot-notation search skips undefined paths", async () => {
+            const nestedData = [
+                { id: 1, name: "Alice" },
+                { id: 2, name: "Bob", items: [{ name: "Widget" }] },
+            ];
+            global.fetch = mockFetch(nestedData, nestedData.length);
+            const ab = createInstance({
+                chunk: false,
+                page_size: 50,
+                search_fields: ["name", "items.name"],
+            });
+
+            await new Promise((resolve) => setTimeout(resolve, 10));
+
+            ab.search("Widget");
+
+            expect(ab.get_total_filtered())
+                .toBe(1);
+        });
     });
 
     describe("pagination", () => {
@@ -1033,6 +1149,479 @@ describe("AlanBradley", () => {
 
             expect(onFilter)
                 .toHaveBeenCalledWith({ status: "active" });
+        });
+    });
+
+    describe("expandable rows", () => {
+        test("adds toggle column to thead when render_expanded is configured", async () => {
+            global.fetch = mockFetch(sampleData, sampleData.length);
+            createInstance({
+                chunk: false,
+                render_expanded: function (item) {
+                    return "<p>" + item.name + "</p>";
+                },
+            });
+
+            await new Promise((resolve) => setTimeout(resolve, 10));
+
+            const ths = document.querySelectorAll("thead th");
+            expect(ths.length)
+                .toBe(4);
+            expect(ths[0].classList.contains("alanbradley-th"))
+                .toBe(true);
+            expect(ths[0].textContent)
+                .toBe("");
+        });
+
+        test("does not add toggle column when render_expanded is not configured", async () => {
+            global.fetch = mockFetch(sampleData, sampleData.length);
+            createInstance({ chunk: false });
+
+            await new Promise((resolve) => setTimeout(resolve, 10));
+
+            const ths = document.querySelectorAll("thead th");
+            expect(ths.length)
+                .toBe(3);
+        });
+
+        test("renders toggle cell in each row when render_expanded is configured", async () => {
+            global.fetch = mockFetch(sampleData, sampleData.length);
+            createInstance({
+                chunk: false,
+                render_expanded: function (item) {
+                    return "<p>" + item.name + "</p>";
+                },
+            });
+
+            await new Promise((resolve) => setTimeout(resolve, 10));
+
+            const toggleCells = document.querySelectorAll(".alanbradley-toggle");
+            expect(toggleCells.length)
+                .toBe(5);
+        });
+
+        test("does not render toggle cells when render_expanded is not configured", async () => {
+            global.fetch = mockFetch(sampleData, sampleData.length);
+            createInstance({ chunk: false });
+
+            await new Promise((resolve) => setTimeout(resolve, 10));
+
+            const toggleCells = document.querySelectorAll(".alanbradley-toggle");
+            expect(toggleCells.length)
+                .toBe(0);
+        });
+
+        test("renders expanded row content when row is expanded", async () => {
+            global.fetch = mockFetch(sampleData, sampleData.length);
+            const ab = createInstance({
+                chunk: false,
+                render_expanded: function (item) {
+                    return "<p>" + item.name + "</p>";
+                },
+            });
+
+            await new Promise((resolve) => setTimeout(resolve, 10));
+
+            ab.expand_row(0);
+
+            const expandedRows = document.querySelectorAll(".alanbradley-expanded");
+            expect(expandedRows.length)
+                .toBe(1);
+            expect(expandedRows[0].querySelector("p").textContent)
+                .toBe("Alice");
+        });
+
+        test("does not render expanded row when row is collapsed", async () => {
+            global.fetch = mockFetch(sampleData, sampleData.length);
+            createInstance({
+                chunk: false,
+                render_expanded: function (item) {
+                    return "<p>" + item.name + "</p>";
+                },
+            });
+
+            await new Promise((resolve) => setTimeout(resolve, 10));
+
+            const expandedRows = document.querySelectorAll(".alanbradley-expanded");
+            expect(expandedRows.length)
+                .toBe(0);
+        });
+
+        test("expanded row colspan matches column count including toggle", async () => {
+            global.fetch = mockFetch(sampleData, sampleData.length);
+            const ab = createInstance({
+                chunk: false,
+                render_expanded: function (item) {
+                    return "<p>" + item.name + "</p>";
+                },
+            });
+
+            await new Promise((resolve) => setTimeout(resolve, 10));
+
+            ab.expand_row(0);
+
+            const expandedTd = document.querySelector(".alanbradley-expanded td");
+            expect(expandedTd.getAttribute("colspan"))
+                .toBe("4");
+        });
+
+        test("empty state colspan includes toggle column when render_expanded is set", async () => {
+            global.fetch = mockFetch(sampleData, sampleData.length);
+            const ab = createInstance({
+                chunk: false,
+                filters: [{ key: "status", label: "Status", options: ["nonexistent"] }],
+                render_expanded: function (item) {
+                    return "<p>" + item.name + "</p>";
+                },
+            });
+
+            await new Promise((resolve) => setTimeout(resolve, 10));
+
+            ab.set_filter("status", "nonexistent");
+
+            const emptyTd = document.querySelector(".alanbradley-empty td");
+            expect(emptyTd.getAttribute("colspan"))
+                .toBe("4");
+        });
+
+        test("clicking toggle cell expands a row", async () => {
+            global.fetch = mockFetch(sampleData, sampleData.length);
+            createInstance({
+                chunk: false,
+                render_expanded: function (item) {
+                    return "<p>" + item.name + "</p>";
+                },
+            });
+
+            await new Promise((resolve) => setTimeout(resolve, 10));
+
+            const toggleCell = document.querySelector(".alanbradley-toggle");
+            toggleCell.click();
+
+            const expandedRows = document.querySelectorAll(".alanbradley-expanded");
+            expect(expandedRows.length)
+                .toBe(1);
+        });
+
+        test("clicking toggle cell again collapses a row", async () => {
+            global.fetch = mockFetch(sampleData, sampleData.length);
+            createInstance({
+                chunk: false,
+                render_expanded: function (item) {
+                    return "<p>" + item.name + "</p>";
+                },
+            });
+
+            await new Promise((resolve) => setTimeout(resolve, 10));
+
+            let toggleCell = document.querySelector(".alanbradley-toggle");
+            toggleCell.click();
+
+            expect(document.querySelectorAll(".alanbradley-expanded").length)
+                .toBe(1);
+
+            toggleCell = document.querySelector(".alanbradley-toggle");
+            toggleCell.click();
+
+            expect(document.querySelectorAll(".alanbradley-expanded").length)
+                .toBe(0);
+        });
+
+        test("toggle_row expands a collapsed row", async () => {
+            global.fetch = mockFetch(sampleData, sampleData.length);
+            const ab = createInstance({
+                chunk: false,
+                render_expanded: function (item) {
+                    return "<p>" + item.name + "</p>";
+                },
+            });
+
+            await new Promise((resolve) => setTimeout(resolve, 10));
+
+            ab.toggle_row(0);
+
+            expect(ab.expanded_rows.has(0))
+                .toBe(true);
+            expect(document.querySelectorAll(".alanbradley-expanded").length)
+                .toBe(1);
+        });
+
+        test("toggle_row collapses an expanded row", async () => {
+            global.fetch = mockFetch(sampleData, sampleData.length);
+            const ab = createInstance({
+                chunk: false,
+                render_expanded: function (item) {
+                    return "<p>" + item.name + "</p>";
+                },
+            });
+
+            await new Promise((resolve) => setTimeout(resolve, 10));
+
+            ab.expand_row(0);
+            expect(ab.expanded_rows.has(0))
+                .toBe(true);
+
+            ab.toggle_row(0);
+            expect(ab.expanded_rows.has(0))
+                .toBe(false);
+        });
+
+        test("expand_row expands a row", async () => {
+            global.fetch = mockFetch(sampleData, sampleData.length);
+            const ab = createInstance({
+                chunk: false,
+                render_expanded: function (item) {
+                    return "<p>" + item.name + "</p>";
+                },
+            });
+
+            await new Promise((resolve) => setTimeout(resolve, 10));
+
+            ab.expand_row(0);
+
+            expect(ab.expanded_rows.has(0))
+                .toBe(true);
+        });
+
+        test("collapse_row collapses a row", async () => {
+            global.fetch = mockFetch(sampleData, sampleData.length);
+            const ab = createInstance({
+                chunk: false,
+                render_expanded: function (item) {
+                    return "<p>" + item.name + "</p>";
+                },
+            });
+
+            await new Promise((resolve) => setTimeout(resolve, 10));
+
+            ab.expand_row(0);
+            ab.collapse_row(0);
+
+            expect(ab.expanded_rows.has(0))
+                .toBe(false);
+        });
+
+        test("collapse_all collapses all rows", async () => {
+            global.fetch = mockFetch(sampleData, sampleData.length);
+            const ab = createInstance({
+                chunk: false,
+                render_expanded: function (item) {
+                    return "<p>" + item.name + "</p>";
+                },
+            });
+
+            await new Promise((resolve) => setTimeout(resolve, 10));
+
+            ab.expand_row(0);
+            ab.expand_row(1);
+            expect(ab.expanded_rows.size)
+                .toBe(2);
+
+            ab.collapse_all();
+            expect(ab.expanded_rows.size)
+                .toBe(0);
+            expect(document.querySelectorAll(".alanbradley-expanded").length)
+                .toBe(0);
+        });
+
+        test("collapses all rows on sort change", async () => {
+            global.fetch = mockFetch(sampleData, sampleData.length);
+            const ab = createInstance({
+                chunk: false,
+                render_expanded: function (item) {
+                    return "<p>" + item.name + "</p>";
+                },
+            });
+
+            await new Promise((resolve) => setTimeout(resolve, 10));
+
+            ab.expand_row(0);
+            expect(ab.expanded_rows.size)
+                .toBe(1);
+
+            ab.set_sort("name", "asc");
+            expect(ab.expanded_rows.size)
+                .toBe(0);
+        });
+
+        test("collapses all rows on filter change", async () => {
+            global.fetch = mockFetch(sampleData, sampleData.length);
+            const ab = createInstance({
+                chunk: false,
+                render_expanded: function (item) {
+                    return "<p>" + item.name + "</p>";
+                },
+                filters: [{ key: "status", label: "Status", options: ["active", "pending", "closed"] }],
+            });
+
+            await new Promise((resolve) => setTimeout(resolve, 10));
+
+            ab.expand_row(0);
+            expect(ab.expanded_rows.size)
+                .toBe(1);
+
+            ab.set_filter("status", "active");
+            expect(ab.expanded_rows.size)
+                .toBe(0);
+        });
+
+        test("collapses all rows on search", async () => {
+            global.fetch = mockFetch(sampleData, sampleData.length);
+            const ab = createInstance({
+                chunk: false,
+                search_fields: ["name"],
+                render_expanded: function (item) {
+                    return "<p>" + item.name + "</p>";
+                },
+            });
+
+            await new Promise((resolve) => setTimeout(resolve, 10));
+
+            ab.expand_row(0);
+            expect(ab.expanded_rows.size)
+                .toBe(1);
+
+            ab.search("Alice");
+            expect(ab.expanded_rows.size)
+                .toBe(0);
+        });
+
+        test("collapses all rows on page change", async () => {
+            global.fetch = mockFetch(sampleData, sampleData.length);
+            const ab = createInstance({
+                chunk: false,
+                page_size: 2,
+                render_expanded: function (item) {
+                    return "<p>" + item.name + "</p>";
+                },
+            });
+
+            await new Promise((resolve) => setTimeout(resolve, 10));
+
+            ab.expand_row(0);
+            expect(ab.expanded_rows.size)
+                .toBe(1);
+
+            ab.go_to_page(2);
+            expect(ab.expanded_rows.size)
+                .toBe(0);
+        });
+
+        test("collapses all rows on clear_filters", async () => {
+            global.fetch = mockFetch(sampleData, sampleData.length);
+            const ab = createInstance({
+                chunk: false,
+                search_fields: ["name"],
+                render_expanded: function (item) {
+                    return "<p>" + item.name + "</p>";
+                },
+            });
+
+            await new Promise((resolve) => setTimeout(resolve, 10));
+
+            ab.expand_row(0);
+            expect(ab.expanded_rows.size)
+                .toBe(1);
+
+            ab.clear_filters();
+            expect(ab.expanded_rows.size)
+                .toBe(0);
+        });
+
+        test("on_expand callback fires when row is expanded", async () => {
+            global.fetch = mockFetch(sampleData, sampleData.length);
+            const onExpand = jest.fn();
+            const ab = createInstance({
+                chunk: false,
+                render_expanded: function (item) {
+                    return "<p>" + item.name + "</p>";
+                },
+                on_expand: onExpand,
+            });
+
+            await new Promise((resolve) => setTimeout(resolve, 10));
+
+            ab.expand_row(0);
+
+            expect(onExpand)
+                .toHaveBeenCalledWith(sampleData[0], 0);
+        });
+
+        test("on_collapse callback fires when row is collapsed", async () => {
+            global.fetch = mockFetch(sampleData, sampleData.length);
+            const onCollapse = jest.fn();
+            const ab = createInstance({
+                chunk: false,
+                render_expanded: function (item) {
+                    return "<p>" + item.name + "</p>";
+                },
+                on_collapse: onCollapse,
+            });
+
+            await new Promise((resolve) => setTimeout(resolve, 10));
+
+            ab.expand_row(0);
+            ab.collapse_row(0);
+
+            expect(onCollapse)
+                .toHaveBeenCalledWith(sampleData[0], 0);
+        });
+
+        test("multiple rows can be expanded simultaneously", async () => {
+            global.fetch = mockFetch(sampleData, sampleData.length);
+            const ab = createInstance({
+                chunk: false,
+                render_expanded: function (item) {
+                    return "<p>" + item.name + "</p>";
+                },
+            });
+
+            await new Promise((resolve) => setTimeout(resolve, 10));
+
+            ab.expand_row(0);
+            ab.expand_row(1);
+
+            expect(ab.expanded_rows.size)
+                .toBe(2);
+            expect(document.querySelectorAll(".alanbradley-expanded").length)
+                .toBe(2);
+        });
+
+        test("expand_row is idempotent", async () => {
+            global.fetch = mockFetch(sampleData, sampleData.length);
+            const ab = createInstance({
+                chunk: false,
+                render_expanded: function (item) {
+                    return "<p>" + item.name + "</p>";
+                },
+            });
+
+            await new Promise((resolve) => setTimeout(resolve, 10));
+
+            ab.expand_row(0);
+            ab.expand_row(0);
+
+            expect(ab.expanded_rows.size)
+                .toBe(1);
+        });
+
+        test("collapse_row is idempotent", async () => {
+            global.fetch = mockFetch(sampleData, sampleData.length);
+            const ab = createInstance({
+                chunk: false,
+                render_expanded: function (item) {
+                    return "<p>" + item.name + "</p>";
+                },
+            });
+
+            await new Promise((resolve) => setTimeout(resolve, 10));
+
+            ab.expand_row(0);
+            ab.collapse_row(0);
+            ab.collapse_row(0);
+
+            expect(ab.expanded_rows.size)
+                .toBe(0);
         });
     });
 
