@@ -41,6 +41,9 @@ Or copy `src/alanbradley.js` and `src/alanbradley.css` into your project.
             { key: "id", label: "ID", sortable: true },
             { key: "name", label: "Name", sortable: true },
             { key: "status", label: "Status", sortable: true },
+
+            // add an empty column definition for the edit button below
+            { key: "", label: "", sortable: false },
         ],
         filters: [
             { key: "status", label: "Status", options: ["active", "closed"] },
@@ -48,11 +51,14 @@ Or copy `src/alanbradley.js` and `src/alanbradley.css` into your project.
         search_fields: ["name", "status"],
         render_row: function (item) {
             return (
-                "<tr>" +
-                '<td data-label="ID">' + item.id + "</td>" +
-                '<td data-label="Name">' + item.name + "</td>" +
-                '<td data-label="Status">' + item.status + "</td>" +
-                "</tr>"
+                '<tr>' +
+                '<td data-label="ID">' + item.id + '</td>' +
+                '<td data-label="Name">' + item.name + '</td>' +
+                '<td data-label="Status">' + item.status + '</td>' +
+                '<td data-label=""><a href="/item/' +
+                item.id +
+                '/edit" class="btn btn-sm">Edit</a></td>' +
+                '</tr>'
             );
         },
     });
