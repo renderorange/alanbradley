@@ -465,11 +465,6 @@
             tr.appendChild(th);
         }
 
-        // Empty <th> for actions column
-        let action_th = document.createElement("th");
-        action_th.className = "alanbradley-th";
-        tr.appendChild(action_th);
-
         thead.appendChild(tr);
     };
 

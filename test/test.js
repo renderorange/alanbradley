@@ -315,9 +315,9 @@ describe("AlanBradley", () => {
             await new Promise((resolve) => setTimeout(resolve, 10));
 
             const ths = document.querySelectorAll("thead th");
-            // 3 columns + 1 action th
+            // 3 columns
             expect(ths.length)
-                .toBe(4);
+                .toBe(3);
         });
 
         test("shows empty message when no data matches filter", async () => {
