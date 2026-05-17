@@ -1,46 +1,46 @@
 {
-  "name": "@renderorange/alanbradley",
-  "version": "0.1.0",
-  "description": "lightweight table filter, sorting, and pagination library, with optional background chunking",
-  "license": "MIT",
-  "author": "Blaine Motsinger <blaine@renderorange.com>",
-  "main": "src/alanbradley.js",
-  "style": "src/alanbradley.css",
-  "files": [
-    "src/",
-    "LICENSE",
-    "README.md"
-  ],
-  "keywords": [
-    "table",
-    "sort",
-    "filter",
-    "pagination",
-    "grid",
-    "vanilla-js"
-  ],
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/renderorange/alanbradley.git"
-  },
-  "bugs": {
-    "url": "https://github.com/renderorange/alanbradley/issues"
-  },
-  "homepage": "https://github.com/renderorange/alanbradley#readme",
-  "publishConfig": {
-    "access": "public"
-  },
-  "scripts": {
-    "test": "jest",
-    "test:watch": "jest --watch",
-    "test:coverage": "jest --coverage",
-    "lint": "node node_modules/eslint/bin/eslint.js . --fix",
-    "lint:check": "node node_modules/eslint/bin/eslint.js ."
-  },
-  "devDependencies": {
-    "eslint": "^9.0.0",
-    "@stylistic/eslint-plugin": "^3.0.0",
-    "jest": "^29.7.0",
-    "jest-environment-jsdom": "^29.7.0"
-  }
+    "name": "@renderorange/alanbradley",
+    "version": "2.0.0",
+    "description": "lightweight table filter, sorting, and pagination library, with optional background chunking",
+    "license": "MIT",
+    "author": "Blaine Motsinger <blaine@renderorange.com>",
+    "main": "src/alanbradley.js",
+    "style": "src/alanbradley.css",
+    "files": [
+        "src/",
+        "LICENSE",
+        "README.md"
+    ],
+    "keywords": [
+        "table",
+        "sort",
+        "filter",
+        "pagination",
+        "grid",
+        "vanilla-js"
+    ],
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/renderorange/alanbradley.git"
+    },
+    "bugs": {
+        "url": "https://github.com/renderorange/alanbradley/issues"
+    },
+    "homepage": "https://github.com/renderorange/alanbradley#readme",
+    "publishConfig": {
+        "access": "public"
+    },
+    "scripts": {
+        "test": "jest",
+        "test:watch": "jest --watch",
+        "test:coverage": "jest --coverage",
+        "lint": "node node_modules/eslint/bin/eslint.js . --fix",
+        "lint:check": "node node_modules/eslint/bin/eslint.js ."
+    },
+    "devDependencies": {
+        "eslint": "^9.0.0",
+        "@stylistic/eslint-plugin": "^3.0.0",
+        "jest": "^29.7.0",
+        "jest-environment-jsdom": "^29.7.0"
+    }
 }
