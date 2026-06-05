@@ -48,6 +48,10 @@
         this.sort_dir = "asc";
         this.search_term = "";
         this.filter_values = {};
+        this.filter_types = {};
+        for (let i = 0; i < this.filters.length; i++) {
+            this.filter_types[this.filters[i].key] = this.filters[i].type || "select";
+        }
         this.expanded_rows = new Set();
         this.search_timeout = null;
 
@@ -130,9 +134,26 @@
             data = data.filter(function (row) {
                 for (let i = 0; i < filter_keys.length; i++) {
                     let key = filter_keys[i];
-                    let val = String(row[key] || "")
-                        .toLowerCase();
-                    if (val !== self.filter_values[key].toLowerCase()) return false;
+                    let filter_type = self.filter_types[key];
+
+                    if (filter_type === "date") {
+                        let range = self.filter_values[key];
+                        if (!range.from && !range.to) continue;
+                        let rowDate = new Date(row[key]);
+                        if (isNaN(rowDate.getTime())) return false;
+                        if (range.from) {
+                            let fromDate = new Date(range.from);
+                            if (rowDate < fromDate) return false;
+                        }
+                        if (range.to) {
+                            let toDate = new Date(range.to + "T23:59:59.999Z");
+                            if (rowDate > toDate) return false;
+                        }
+                    } else {
+                        let val = String(row[key] || "")
+                            .toLowerCase();
+                        if (val !== self.filter_values[key].toLowerCase()) return false;
+                    }
                 }
                 return true;
             });
@@ -419,7 +440,7 @@
         this.search_input = search;
         controls.appendChild(search);
 
-        // Filter dropdowns (right)
+        // Filter dropdowns and date inputs (right)
         for (let f = 0; f < this.filters.length; f++) {
             let filter = this.filters[f];
             let filter_wrapper = document.createElement("span");
@@ -429,43 +450,92 @@
             label.textContent = filter.label;
             filter_wrapper.appendChild(label);
 
-            let select = document.createElement("select");
-            select.className = "alanbradley-filter";
-            select.setAttribute("data-alanbradley-filter", filter.key);
+            if (filter.type === "date") {
+                let range_wrapper = document.createElement("span");
+                range_wrapper.className = "alanbradley-date-range";
 
-            let all_opt = document.createElement("option");
-            all_opt.value = "";
-            all_opt.textContent = "All " + filter.label;
-            select.appendChild(all_opt);
+                let from_label = document.createElement("span");
+                from_label.className = "alanbradley-date-label";
+                from_label.textContent = "From:";
+                range_wrapper.appendChild(from_label);
 
-            for (let o = 0; o < filter.options.length; o++) {
-                let option = document.createElement("option");
-                let opt_val = filter.options[o];
-                if (typeof opt_val === "object" && opt_val !== null) {
-                    option.value = opt_val.value;
-                    option.textContent = opt_val.label;
-                } else {
-                    option.value = opt_val;
-                    option.textContent = opt_val;
+                let from_input = document.createElement("input");
+                from_input.type = "date";
+                from_input.className = "alanbradley-date-input";
+                from_input.setAttribute("data-alanbradley-date-from", filter.key);
+                range_wrapper.appendChild(from_input);
+
+                let to_label = document.createElement("span");
+                to_label.className = "alanbradley-date-label";
+                to_label.textContent = "To:";
+                range_wrapper.appendChild(to_label);
+
+                let to_input = document.createElement("input");
+                to_input.type = "date";
+                to_input.className = "alanbradley-date-input";
+                to_input.setAttribute("data-alanbradley-date-to", filter.key);
+                range_wrapper.appendChild(to_input);
+
+                (function (key, fromEl, toEl) {
+                    function update_date_filter () {
+                        let range = {};
+                        if (fromEl.value) range.from = fromEl.value;
+                        if (toEl.value) range.to = toEl.value;
+                        if (range.from || range.to) {
+                            self.filter_values[key] = range;
+                        } else {
+                            delete self.filter_values[key];
+                        }
+                        self.expanded_rows.clear();
+                        self.current_page = 1;
+                        self.render();
+                        if (self.on_filter) self.on_filter(self.filter_values);
+                    }
+                    fromEl.addEventListener("change", update_date_filter);
+                    toEl.addEventListener("change", update_date_filter);
+                })(filter.key, from_input, to_input);
+
+                filter_wrapper.appendChild(range_wrapper);
+            } else {
+                let select = document.createElement("select");
+                select.className = "alanbradley-filter";
+                select.setAttribute("data-alanbradley-filter", filter.key);
+
+                let all_opt = document.createElement("option");
+                all_opt.value = "";
+                all_opt.textContent = "All " + filter.label;
+                select.appendChild(all_opt);
+
+                for (let o = 0; o < filter.options.length; o++) {
+                    let option = document.createElement("option");
+                    let opt_val = filter.options[o];
+                    if (typeof opt_val === "object" && opt_val !== null) {
+                        option.value = opt_val.value;
+                        option.textContent = opt_val.label;
+                    } else {
+                        option.value = opt_val;
+                        option.textContent = opt_val;
+                    }
+                    select.appendChild(option);
                 }
-                select.appendChild(option);
+
+                (function (key) {
+                    select.addEventListener("change", function () {
+                        if (this.value) {
+                            self.filter_values[key] = this.value;
+                        } else {
+                            delete self.filter_values[key];
+                        }
+                        self.expanded_rows.clear();
+                        self.current_page = 1;
+                        self.render();
+                        if (self.on_filter) self.on_filter(self.filter_values);
+                    });
+                })(filter.key);
+
+                filter_wrapper.appendChild(select);
             }
 
-            (function (key) {
-                select.addEventListener("change", function () {
-                    if (this.value) {
-                        self.filter_values[key] = this.value;
-                    } else {
-                        delete self.filter_values[key];
-                    }
-                    self.expanded_rows.clear();
-                    self.current_page = 1;
-                    self.render();
-                    if (self.on_filter) self.on_filter(self.filter_values);
-                });
-            })(filter.key);
-
-            filter_wrapper.appendChild(select);
             controls.appendChild(filter_wrapper);
         }
 
@@ -630,6 +700,18 @@
         );
         for (let i = 0; i < selects.length; i++) {
             selects[i].value = "";
+        }
+        let dateFromInputs = this.el.parentElement.querySelectorAll(
+            "[data-alanbradley-date-from]",
+        );
+        let dateToInputs = this.el.parentElement.querySelectorAll(
+            "[data-alanbradley-date-to]",
+        );
+        for (let i = 0; i < dateFromInputs.length; i++) {
+            dateFromInputs[i].value = "";
+        }
+        for (let i = 0; i < dateToInputs.length; i++) {
+            dateToInputs[i].value = "";
         }
         this.current_page = 1;
         this.render();

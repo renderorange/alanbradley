@@ -1644,4 +1644,187 @@ describe("AlanBradley", () => {
                 .toBe("Tom &amp; Jerry");
         });
     });
+
+    describe("date filter", () => {
+        test("filters by from date only", async () => {
+            global.fetch = mockFetch(sampleData, sampleData.length);
+            const ab = createInstance({
+                chunk: false,
+                page_size: 50,
+                filters: [
+                    { key: "date", label: "Date", type: "date" },
+                ],
+            });
+
+            await new Promise((resolve) => setTimeout(resolve, 10));
+
+            ab.set_filter("date", { from: "2026-01-01" });
+
+            const rows = ab.el.querySelectorAll("tbody tr");
+            expect(rows.length)
+                .toBe(3); // Charlie, Diana, Eve (dates >= 2026-01-01)
+        });
+
+        test("filters by to date only", async () => {
+            global.fetch = mockFetch(sampleData, sampleData.length);
+            const ab = createInstance({
+                chunk: false,
+                page_size: 50,
+                filters: [
+                    { key: "date", label: "Date", type: "date" },
+                ],
+            });
+
+            await new Promise((resolve) => setTimeout(resolve, 10));
+
+            ab.set_filter("date", { to: "2025-12-31" });
+
+            const rows = ab.el.querySelectorAll("tbody tr");
+            expect(rows.length)
+                .toBe(2); // Alice, Bob (dates <= 2025-12-31 end of day)
+        });
+
+        test("filters by date range", async () => {
+            global.fetch = mockFetch(sampleData, sampleData.length);
+            const ab = createInstance({
+                chunk: false,
+                page_size: 50,
+                filters: [
+                    { key: "date", label: "Date", type: "date" },
+                ],
+            });
+
+            await new Promise((resolve) => setTimeout(resolve, 10));
+
+            ab.set_filter("date", { from: "2025-06-01", to: "2026-02-28" });
+
+            const rows = ab.el.querySelectorAll("tbody tr");
+            expect(rows.length)
+                .toBe(3); // Bob, Diana, Eve
+        });
+
+        test("includes end date fully via T23:59:59.999", async () => {
+            global.fetch = mockFetch(sampleData, sampleData.length);
+            const ab = createInstance({
+                chunk: false,
+                page_size: 50,
+                filters: [
+                    { key: "date", label: "Date", type: "date" },
+                ],
+            });
+
+            await new Promise((resolve) => setTimeout(resolve, 10));
+
+            // Eve's date is 2026-02-28T00:00:00.000Z
+            ab.set_filter("date", { to: "2026-02-28" });
+
+            const rows = ab.el.querySelectorAll("tbody tr");
+            expect(rows.length)
+                .toBe(4); // Alice, Bob, Diana, Eve — Eve at 2026-02-28 end of day
+        });
+
+        test("unparseable date values are excluded", async () => {
+            const badData = [
+                { id: 1, name: "Alice", status: "active", date: "not-a-date" },
+                { id: 2, name: "Bob", status: "active", date: "2025-06-20T00:00:00.000Z" },
+            ];
+            global.fetch = mockFetch(badData, badData.length);
+            const ab = createInstance({
+                chunk: false,
+                page_size: 50,
+                filters: [
+                    { key: "date", label: "Date", type: "date" },
+                ],
+            });
+
+            await new Promise((resolve) => setTimeout(resolve, 10));
+
+            ab.set_filter("date", { from: "2025-01-01" });
+
+            expect(ab.get_total_filtered())
+                .toBe(1); // Only Bob
+        });
+
+        test("set_filter with empty from/to clears the date filter", async () => {
+            global.fetch = mockFetch(sampleData, sampleData.length);
+            const ab = createInstance({
+                chunk: false,
+                page_size: 50,
+                filters: [
+                    { key: "date", label: "Date", type: "date" },
+                ],
+            });
+
+            await new Promise((resolve) => setTimeout(resolve, 10));
+
+            ab.set_filter("date", { from: "2026-01-01" });
+            expect(ab.get_total_filtered())
+                .toBe(3);
+
+            ab.set_filter("date", {});
+            expect(ab.get_total_filtered())
+                .toBe(5);
+        });
+
+        test("clear_filters resets date filters", async () => {
+            global.fetch = mockFetch(sampleData, sampleData.length);
+            const ab = createInstance({
+                chunk: false,
+                page_size: 50,
+                filters: [
+                    { key: "date", label: "Date", type: "date" },
+                ],
+            });
+
+            await new Promise((resolve) => setTimeout(resolve, 10));
+
+            ab.set_filter("date", { from: "2026-01-01" });
+            expect(ab.get_total_filtered())
+                .toBe(3);
+
+            ab.clear_filters();
+            expect(ab.get_total_filtered())
+                .toBe(5);
+        });
+
+        test("date filter combined with text search", async () => {
+            global.fetch = mockFetch(sampleData, sampleData.length);
+            const ab = createInstance({
+                chunk: false,
+                page_size: 50,
+                search_fields: ["name"],
+                filters: [
+                    { key: "date", label: "Date", type: "date" },
+                ],
+            });
+
+            await new Promise((resolve) => setTimeout(resolve, 10));
+
+            ab.set_filter("date", { from: "2026-01-01" });
+            ab.search("Diana");
+
+            expect(ab.get_total_filtered())
+                .toBe(1);
+        });
+
+        test("date filter combined with select filter", async () => {
+            global.fetch = mockFetch(sampleData, sampleData.length);
+            const ab = createInstance({
+                chunk: false,
+                page_size: 50,
+                filters: [
+                    { key: "date", label: "Date", type: "date" },
+                    { key: "status", label: "Status", type: "select", options: ["active", "pending", "closed"] },
+                ],
+            });
+
+            await new Promise((resolve) => setTimeout(resolve, 10));
+
+            ab.set_filter("date", { from: "2026-01-01" });
+            ab.set_filter("status", "active");
+
+            expect(ab.get_total_filtered())
+                .toBe(2);
+        });
+    });
 });

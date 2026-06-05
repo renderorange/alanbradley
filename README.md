@@ -10,7 +10,7 @@ Lightweight table filter, sorting, and pagination library, with optional backgro
 - progressive background chunking for large datasets
 - client-side sort (numeric, date, string)
 - global text search across configurable fields (including nested data)
-- per-column dropdown filters
+- per-column dropdown and date range filters
 - pagination with configurable page sizes
 - expandable subtable rows
 - fully themable via CSS custom properties
@@ -46,7 +46,8 @@ Or copy `src/alanbradley.js` and `src/alanbradley.css` into your project.
             { key: "", label: "", sortable: false },
         ],
         filters: [
-            { key: "status", label: "Status", options: ["active", "closed"] },
+            { key: "status", label: "Status", type: "select", options: ["active", "closed"] },
+            { key: "created_at", label: "Created", type: "date" },
         ],
         search_fields: ["name", "status"],
         render_row: function (item) {
@@ -103,7 +104,8 @@ And return:
 | `filters`            | array    | `[]`                  | Dropdown filter definitions                  |
 | `filters[].key`      | string   | required              | Data field to filter on                      |
 | `filters[].label`    | string   | required              | Display label                                |
-| `filters[].options`  | array    | required              | Values (strings or `{value, label}` objects) |
+| `filters[].type`     | string   | `'select'`            | Filter type: `'select'` (dropdown) or `'date'` (date range) |
+| `filters[].options`  | array    | required for `select` | Values (strings or `{value, label}` objects) |
 | `search_fields`      | array    | `[]`                  | Field names to search across (supports dot-notation for nested data) |
 | `render_row`         | function | required              | Returns HTML string for a data row           |
 | `render_expanded`    | function | `null`                | Returns HTML string for expanded row content  |
@@ -123,7 +125,7 @@ And return:
 | `refresh()`                   | Re-fetch all data                              |
 | `go_to_page(n)`               | Navigate to page n                             |
 | `set_sort(column, direction)` | Set sort programmatically                      |
-| `set_filter(key, value)`      | Set a filter value                              |
+| `set_filter(key, value)`      | Set a filter value (for `type: 'date'`, value is `{from, to}`) |
 | `clear_filters()`             | Reset all filters and search                    |
 | `search(term)`                | Set search term programmatically                |
 | `toggle_row(index)`           | Toggle expanded state of row at index           |
