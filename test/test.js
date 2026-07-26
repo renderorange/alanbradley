@@ -219,6 +219,15 @@ describe("AlanBradley", () => {
                 );
         });
 
+        test("appends params with & when api URL already contains query string", () => {
+            global.fetch = mockFetch(sampleData, sampleData.length);
+            createInstance({ api: "/api/test?existing=param" });
+            expect(global.fetch)
+                .toHaveBeenCalledWith(
+                    expect.stringContaining("/api/test?existing=param&"),
+                );
+        });
+
         test("fetches all chunks when chunking enabled", async () => {
             const chunk1 = sampleData.slice(0, 2);
             const chunk2 = sampleData.slice(2, 4);

@@ -90,7 +90,8 @@
         params.set("chunk", chunk_num);
         params.set("page_size", this.chunk ? this.chunk_size : 999999);
 
-        let url = this.api + "?" + params.toString();
+        let separator = this.api.includes("?") ? "&" : "?";
+        let url = this.api + separator + params.toString();
         this.loaded_chunks[chunk_num] = "loading";
 
         fetch(url)
