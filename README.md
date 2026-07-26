@@ -96,7 +96,7 @@ And return:
 
 | Option               | Type     | Default               | Description                                  |
 | -------------------- | -------- | --------------------- | -------------------------------------------- |
-| `api`                | string   | required              | API endpoint URL                             |
+| `api`                | string   | required              | API endpoint URL (may include query params)  |
 | `columns`            | array    | required              | Column definitions                           |
 | `columns[].key`      | string   | required              | Data field name (also used as sort key)      |
 | `columns[].label`    | string   | required              | Header display text                          |
